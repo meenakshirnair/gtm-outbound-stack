@@ -28,9 +28,9 @@ each step below is one module in a single Make.com scenario.
    - This is the standard pattern for slotting a Node/Puppeteer job into a
      no-code orchestrator
 
-5. **Module 4 — Anthropic: Create a Message**
-   - Make has a native Anthropic app; module = `Create a Message`
-   - Input: the prompt template from `step4_claude_personalize.py`, with
+5. **Module 4 — Gemini: Generate Content**
+   - Make has a native Google Gemini app; module = `Generate Content`
+   - Input: the prompt template from `step4_gemini_personalize.py`, with
      company/contact fields mapped in from prior modules
    - Looped per contact
 

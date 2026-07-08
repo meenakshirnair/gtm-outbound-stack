@@ -1,9 +1,9 @@
 """
 Runs the full pipeline in order: Apify -> Apollo -> [Puppeteer runs separately,
-it's Node] -> Claude -> Sheets + Gmail.
+it's Node] -> Gemini -> Sheets + Gmail.
 
 Usage:
-    python run_pipeline.py                  # runs Apify + Apollo + Claude + Sheets + Gmail
+    python run_pipeline.py                  # runs Apify + Apollo + Gemini + Sheets + Gmail
     python run_pipeline.py --skip-gmail      # skip Gmail draft creation
     python run_pipeline.py --skip-sheet      # skip Google Sheet push
 
@@ -43,9 +43,9 @@ def main():
 
     print("\n>>> Now run the Puppeteer signal check before continuing:")
     print(">>>   cd puppeteer && node step3_signal_check.js")
-    input(">>> Press Enter once that's finished to continue with Claude personalization...")
+    input(">>> Press Enter once that's finished to continue with Gemini personalization...")
 
-    run_step("step4_claude_personalize.py")
+    run_step("step4_gemini_personalize.py")
 
     if not args.skip_sheet:
         run_step("step5_sheet_output.py")

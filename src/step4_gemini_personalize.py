@@ -1,5 +1,5 @@
 """
-STEP 4 — CLAUDE API: message personalization.
+STEP 4 — GEMINI API: message personalization.
 
 Job: for each enriched contact, write a short, specific outbound email that
 references something real about their company (the hiring signal from step 3,
@@ -7,16 +7,16 @@ or a page snippet from step 1) instead of a generic template. This is the
 step that turns "we scraped some data" into "we produced something a rep
 could actually send."
 
-Requires: ANTHROPIC_API_KEY env var.
+Requires: GEMINI_API_KEY env var. Get one free at https://aistudio.google.com/apikey
 """
 
 import os
 import sys
 import json
 import time
-import anthropic
+import google.generativeai as genai
 
-client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env automatically
+GEMINI_MODEL = "gemini-2.0-flash"
 
 PROMPT_TEMPLATE = """You are writing a short, specific cold outbound email from a GTM Engineer \
 at InRule Technology (decision automation software) to a prospect at another company.
@@ -42,7 +42,7 @@ def build_signal_context(company: dict) -> str:
     return "No strong signal found; keep the email general to their industry."
 
 
-def personalize(company: dict, contact: dict) -> str:
+def personalize(model, company: dict, contact: dict) -> str:
     prompt = PROMPT_TEMPLATE.format(
         name=contact["name"],
         title=contact["title"],
@@ -50,18 +50,18 @@ def personalize(company: dict, contact: dict) -> str:
         category=company["category"],
         signal_context=build_signal_context(company),
     )
-    msg = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=400,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return msg.content[0].text.strip()
+    response = model.generate_content(prompt)
+    return response.text.strip()
 
 
 def main():
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("ERROR: set ANTHROPIC_API_KEY in your environment (see config/.env.example)")
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("ERROR: set GEMINI_API_KEY in your environment (see config/.env.example)")
         sys.exit(1)
+
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel(GEMINI_MODEL)
 
     in_path = os.path.join(os.path.dirname(__file__), "..", "output", "step3_signal_checked.json")
     with open(in_path) as f:
@@ -74,7 +74,7 @@ def main():
                 continue
             print(f"  -> writing message for {contact['name']} ({company['name']})...")
             try:
-                message = personalize(company, contact)
+                message = personalize(model, company, contact)
             except Exception as e:
                 print(f"  !! failed on {contact['name']}: {e}")
                 message = ""

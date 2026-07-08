@@ -1,7 +1,7 @@
 # GTM Outbound Stack
 
 An automated outbound pipeline: Apify (company discovery) → Apollo (contact
-enrichment) → Puppeteer (hiring-signal check) → Claude API (message
+enrichment) → Puppeteer (hiring-signal check) → Gemini API (message
 personalization) → Google Sheets + Gmail (output).
 
 ICP for this demo: PE-backed, mid-market SaaS companies with a RevOps/GTM
@@ -12,7 +12,7 @@ function — the same category of company InRule itself is.
 Two tools do discovery/scraping (Apify, Puppeteer) and one does data
 enrichment (Apollo) because that's the real division of labor in outbound
 tooling: scrapers are good at reading pages, data providers are good at
-verified contact info, and no single tool does both well. Claude turns the
+verified contact info, and no single tool does both well. Gemini turns the
 combined data into something a rep could actually send. Make.com is the
 scheduler/glue that would run this on autopilot in production — see
 `make_scenario_blueprint.md` for how the same five steps map onto Make
@@ -25,7 +25,7 @@ modules.
 3. Copy `config/.env.example` to `.env` and fill in your real keys:
    - `APIFY_TOKEN` — https://console.apify.com/account/integrations
    - `APOLLO_API_KEY` — https://app.apollo.io/#/settings/integrations/api
-   - `ANTHROPIC_API_KEY` — https://console.anthropic.com
+   - `GEMINI_API_KEY` — https://aistudio.google.com/apikey
 4. For the Google Sheet output: create a Google Cloud service account with
    Sheets API enabled, download the JSON key, set
    `GOOGLE_SERVICE_ACCOUNT_JSON` to its path, and share your target Sheet
@@ -44,7 +44,7 @@ python run_pipeline.py
 
 This runs Apify → Apollo, pauses for you to run the Puppeteer step
 separately (`cd puppeteer && node step3_signal_check.js`), then continues
-with Claude → Sheets → Gmail.
+with Gemini → Sheets → Gmail.
 
 Run stages individually while developing:
 
@@ -52,7 +52,7 @@ Run stages individually while developing:
 python src/step1_apify_scrape.py
 python src/step2_apollo_enrich.py
 node puppeteer/step3_signal_check.js
-python src/step4_claude_personalize.py
+python src/step4_gemini_personalize.py
 python src/step5_sheet_output.py
 python src/step5_gmail_drafts.py
 ```
