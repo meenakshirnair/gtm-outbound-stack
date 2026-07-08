@@ -1,0 +1,23 @@
+# secrets — never commit these
+.env
+config/credentials.json
+config/service-account.json
+config/gmail_token.json
+config/*.json
+!config/target_companies.py
+
+# generated pipeline output (contains real contact data/emails)
+output/*.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# node
+node_modules/
+package-lock.json
+
+# os cruft
+.DS_Store

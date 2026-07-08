@@ -1,0 +1,12 @@
+{
+  "name": "gtm-outbound-signal-check",
+  "version": "1.0.0",
+  "description": "Puppeteer stage of the GTM outbound stack: checks target company careers pages for GTM/RevOps hiring signal",
+  "main": "step3_signal_check.js",
+  "scripts": {
+    "start": "node step3_signal_check.js"
+  },
+  "dependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}
