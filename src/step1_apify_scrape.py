@@ -43,8 +43,15 @@ def scrape_company(client: ApifyClient, company: dict) -> dict:
     print(f"  -> scraping {company['name']} ({company['domain']})...")
     run = client.actor(ACTOR_ID).call(run_input=run_input)
 
+    # Different apify-client versions return either a dict or a Run object.
+    # Handle both so this doesn't break on a version mismatch.
+    if isinstance(run, dict):
+        dataset_id = run["defaultDatasetId"]
+    else:
+        dataset_id = getattr(run, "default_dataset_id", None) or getattr(run, "defaultDatasetId", None)
+
     pages = []
-    for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+    for item in client.dataset(dataset_id).iterate_items():
         pages.append({
             "url": item.get("url"),
             "text": (item.get("text") or "")[:4000],  # cap for downstream token budget

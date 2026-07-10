@@ -6,15 +6,14 @@
  * "load more", or content injected only after a specific JS event fires
  * (common on company careers boards built on Greenhouse/Lever widgets that
  * lazy-load listings on scroll). Puppeteer gives us a real, scriptable browser
- * to handle that class of page, which is the actual reason a GTM stack would
- * carry both a generic crawler (Apify) AND a dedicated headless-browser tool
- * (Puppeteer) instead of just one.
+ * to handle that class of page.
  *
- * Here: load each company's careers page, scroll to trigger lazy-loaded job
- * listings, then grep for GTM/RevOps-flavored job titles as a hiring signal.
- * A company actively hiring for GTM/RevOps roles is a stronger outbound
- * trigger than a company that isn't — it means they're likely investing in
- * (or struggling with) exactly the workflow-automation problem InRule solves.
+ * This is personal job-search outreach, not sales prospecting: here we load
+ * each company's careers page, scroll to trigger lazy-loaded job listings,
+ * and check whether they're actively hiring for roles matching my actual
+ * target titles (Product Analyst, Technical BA, AI/ML BA, Systems Analyst,
+ * GTM Engineer). A company with an open, relevant role is a much stronger
+ * reason to reach out than one where I'd be cold-emailing into a vacuum.
  *
  * Run: node step3_signal_check.js
  * Requires: npm install puppeteer
@@ -25,8 +24,9 @@ const fs = require('fs');
 const path = require('path');
 
 const SIGNAL_KEYWORDS = [
-  'revenue operations', 'revops', 'gtm', 'go-to-market',
-  'sales operations', 'marketing operations', 'systems analyst',
+  'product analyst', 'technical business analyst', 'business analyst',
+  'systems analyst', 'ai/ml', 'machine learning analyst', 'ai analyst',
+  'gtm engineer', 'go-to-market engineer', 'revenue operations analyst',
 ];
 
 async function checkSignal(browser, company) {
@@ -78,7 +78,7 @@ async function main() {
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
 
   const withSignal = results.filter((r) => r.hiring_signal).length;
-  console.log(`\nDone. ${withSignal}/${results.length} companies show GTM/RevOps hiring signal -> ${outPath}`);
+  console.log(`\nDone. ${withSignal}/${results.length} companies show an open role matching my target titles -> ${outPath}`);
 }
 
 main();

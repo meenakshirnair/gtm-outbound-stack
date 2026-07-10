@@ -1,0 +1,17 @@
+{
+  "name": "signal-check-webhook",
+  "version": "1.0.0",
+  "description": "HTTP wrapper around the Puppeteer signal-check step, for Make.com to call as one scenario module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "@sparticuz/chromium": "^123.0.0",
+    "puppeteer-core": "^22.0.0"
+  }
+}
