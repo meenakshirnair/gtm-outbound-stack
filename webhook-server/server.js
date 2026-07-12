@@ -81,19 +81,25 @@ app.post('/check-signal', async (req, res) => {
       // right there in a real browser. This was silently causing false
       // negatives on sites that use an embedded job board.
       let bodyText = '';
-      for (const frame of page.frames()) {
-        try {
-          // Race against a timeout — a single slow/unresponsive iframe
-          // (chat widget, ad, analytics) must not be allowed to hang the
-          // whole request. If it doesn't respond in 3s, skip it and move on.
-          const frameText = await Promise.race([
+      // Check all frames IN PARALLEL, not one at a time. Checking
+      // sequentially meant a page with N slow iframes could take up to
+      // N * 3 seconds just for this step alone — easily blowing past
+      // Make's 40s HTTP timeout on any page with several embeds (chat
+      // widgets, ad trackers, analytics). Running them concurrently caps
+      // the worst case at ~3 seconds total, regardless of frame count.
+      const frameResults = await Promise.allSettled(
+        page.frames().map((frame) =>
+          Promise.race([
             frame.evaluate(() => document.body.innerText),
             new Promise((_, reject) => setTimeout(() => reject(new Error('frame timeout')), 3000)),
-          ]);
-          bodyText += ' ' + frameText;
-        } catch (frameErr) {
-          // Cross-origin/slow/unresponsive iframes — skip and continue.
+          ])
+        )
+      );
+      for (const result of frameResults) {
+        if (result.status === 'fulfilled') {
+          bodyText += ' ' + result.value;
         }
+        // rejected (timeout or cross-origin) frames are silently skipped
       }
       bodyText = bodyText.toLowerCase();
 
