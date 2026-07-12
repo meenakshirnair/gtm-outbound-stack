@@ -17,7 +17,7 @@
  * Endpoint: POST /check-signal
  * Body: { "name": "InRule Technology", "domain": "inrule.com" }
  * Header: x-webhook-secret: <WEBHOOK_SECRET> (set as an env var on Render)
- * Returns: { name, domain, hiring_signal, matched_keywords }
+ * Returns: { name, domain, hiring_signal, matched_keywords, page_load_failed, load_error }
  */
 
 const express = require('express');
@@ -58,8 +58,12 @@ app.post('/check-signal', async (req, res) => {
     let signal = false;
     let matchedKeywords = [];
 
+    let pageLoadFailed = false;
+    let loadError = null;
+
     try {
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
+      await new Promise((r) => setTimeout(r, 1500));
 
       for (let i = 0; i < 3; i++) {
         await page.evaluate(() => window.scrollBy(0, window.innerHeight));
@@ -75,10 +79,19 @@ app.post('/check-signal', async (req, res) => {
         }
       }
     } catch (pageErr) {
+      pageLoadFailed = true;
+      loadError = pageErr.message;
       console.log(`  careers page fetch failed for ${domain}: ${pageErr.message}`);
     }
 
-    res.json({ name, domain, hiring_signal: signal, matched_keywords: matchedKeywords });
+    res.json({
+      name,
+      domain,
+      hiring_signal: signal,
+      matched_keywords: matchedKeywords,
+      page_load_failed: pageLoadFailed,
+      load_error: loadError,
+    });
   } catch (err) {
     console.error('Signal check failed:', err);
     res.status(500).json({ error: err.message });
