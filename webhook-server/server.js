@@ -83,11 +83,16 @@ app.post('/check-signal', async (req, res) => {
       let bodyText = '';
       for (const frame of page.frames()) {
         try {
-          const frameText = await frame.evaluate(() => document.body.innerText);
+          // Race against a timeout — a single slow/unresponsive iframe
+          // (chat widget, ad, analytics) must not be allowed to hang the
+          // whole request. If it doesn't respond in 3s, skip it and move on.
+          const frameText = await Promise.race([
+            frame.evaluate(() => document.body.innerText),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('frame timeout')), 3000)),
+          ]);
           bodyText += ' ' + frameText;
         } catch (frameErr) {
-          // Cross-origin iframes can block script access — skip those,
-          // nothing we can do about it, but don't let it kill the whole check.
+          // Cross-origin/slow/unresponsive iframes — skip and continue.
         }
       }
       bodyText = bodyText.toLowerCase();
