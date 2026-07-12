@@ -33,6 +33,7 @@ const SIGNAL_KEYWORDS = [
   'product analyst', 'technical business analyst', 'business analyst',
   'systems analyst', 'ai/ml', 'machine learning analyst', 'ai analyst',
   'gtm engineer', 'go-to-market engineer', 'revenue operations analyst',
+  'business intelligence', 'artificial intelligence analyst', 'gtm', 'go-to-market',
 ];
 
 app.post('/check-signal', async (req, res) => {
@@ -63,9 +64,12 @@ app.post('/check-signal', async (req, res) => {
 
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 40000 });
-      await new Promise((r) => setTimeout(r, 1500));
+      // Many careers pages fetch their actual job listings via a separate API
+      // call AFTER the page itself loads (React/Next.js style), so a short
+      // fixed pause isn't enough — 5s gives that fetch real time to complete.
+      await new Promise((r) => setTimeout(r, 5000));
 
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 5; i++) {
         await page.evaluate(() => window.scrollBy(0, window.innerHeight));
         await new Promise((r) => setTimeout(r, 800));
       }
