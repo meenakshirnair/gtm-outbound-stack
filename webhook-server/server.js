@@ -74,7 +74,23 @@ app.post('/check-signal', async (req, res) => {
         await new Promise((r) => setTimeout(r, 800));
       }
 
-      const bodyText = await page.evaluate(() => document.body.innerText.toLowerCase());
+      // Read text from EVERY frame, not just the main page. A lot of
+      // careers pages embed their actual job board (Greenhouse, Lever,
+      // SmartRecruiters, etc.) inside an iframe — document.body.innerText
+      // on the main page never sees that content, even though it's visibly
+      // right there in a real browser. This was silently causing false
+      // negatives on sites that use an embedded job board.
+      let bodyText = '';
+      for (const frame of page.frames()) {
+        try {
+          const frameText = await frame.evaluate(() => document.body.innerText);
+          bodyText += ' ' + frameText;
+        } catch (frameErr) {
+          // Cross-origin iframes can block script access — skip those,
+          // nothing we can do about it, but don't let it kill the whole check.
+        }
+      }
+      bodyText = bodyText.toLowerCase();
 
       for (const kw of SIGNAL_KEYWORDS) {
         if (bodyText.includes(kw)) {
